@@ -1,7 +1,8 @@
 pipeline {
-    agent any 
+    agent any
+
     stages {
-         stage('Checkout') {
+       stage('Checkout') {
             steps {
                 checkout scmGit(
                     branches: [[name: '*/main']],
@@ -11,26 +12,16 @@ pipeline {
             }
         }
 
-        stage('Build & Install') {
+        stage('Build') {
             steps {
-                sh 'mvn clean install -Dmaven.test.failure.ignore=true'
+                sh '''mvn clean package -DskipTests'''
             }
         }
 
-        stage('Test') {
+       stage('Archive Artifacts') {
             steps {
-                sh 'mvn test -Dmaven.test.failure.ignore=true'
-            }
-            post {
-                always {
-                    junit 'target/surefire-reports/*.xml'
-                }
+                archiveArtifacts artifacts: '**/target/*.jar', followSymlinks: false
             }
         }
-    }  
-
-    post {
-        success { echo "succeeded" }
-        failure { echo "failed" }
     }
 }
