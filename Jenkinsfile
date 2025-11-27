@@ -1,45 +1,33 @@
 pipeline {
     agent any
-    
+
     stages {
-        stage('Checkout') {
+       stage('Checkout') {
             steps {
-                echo "📥 Code récupéré automatiquement."
+                checkout scmGit(
+                    branches: [[name: '*/main']],
+                    extensions: [],
+                    userRemoteConfigs: [[url: 'https://github.com/Abirbenbrahem-Git/jenkins.git']]
+                )
             }
         }
 
         stage('Build') {
             steps {
-                echo '🔨 Construction du projet Maven...'
-                script {
-                    if (isUnix()) {
-                        sh 'mvn clean compile'
-                    } else {
-                        bat 'mvn clean compile'
-                    }
-                }
+                sh 'mvn clean compile'
             }
         }
 
-        stage('Test') {
+         stage('Test') {
             steps {
-                echo '🧪 Exécution des tests unitaires...'
                 script {
-                    if (isUnix()) {
                         sh 'mvn test'
-                    } else {
-                        bat 'mvn test'
-                    }
                 }
             }
             post {
                 always {
                     script {
-                        try {
                             junit '*/target/surefire-reports/.xml'
-                        } catch (Exception e) {
-                            echo "⚠️ Pas de rapports de tests trouvés"
-                        }
                     }
                 }
             }
@@ -47,61 +35,16 @@ pipeline {
 
         stage('Package') {
             steps {
-                echo '📦 Packaging de l\'application...'
                 script {
-                    if (isUnix()) {
                         sh 'mvn package -DskipTests'
-                    } else {
-                        bat 'mvn package -DskipTests'
-                    }
+                    } 
                 }
             }
-        }
 
-        stage('Archive Artifacts') {
+       stage('Archive Artifacts') {
             steps {
-                echo '💾 Archivage des artefacts...'
-                script {
-                    try {
-                        archiveArtifacts artifacts: '*/target/.jar', 
-                                         fingerprint: true,
-                                         allowEmptyArchive: true
-                    } catch (Exception e) {
-                        echo "⚠️ Pas d'artefacts à archiver"
-                    }
-                }
+                archiveArtifacts artifacts: '**/target/*.jar',  fingerprint: true, allowEmptyArchive: true
             }
-        }
-    }
-    
-    post {
-        success {
-            echo '✅ =============================================='
-            echo '✅ BUILD RÉUSSI !'
-            echo '✅ =============================================='
-            echo "✅ Build #${env.BUILD_NUMBER} terminé avec succès"
-        }
-        
-        failure {
-            echo '❌ =============================================='
-            echo '❌ BUILD ÉCHOUÉ !'
-            echo '❌ =============================================='
-            echo "❌ Build #${env.BUILD_NUMBER} a échoué"
-        }
-        
-        unstable {
-            echo '⚠️ =============================================='
-            echo '⚠️ BUILD INSTABLE'
-            echo '⚠️ =============================================='
-        }
-        
-        always {
-            echo '🧹 Nettoyage de l\'espace de travail...'
-            cleanWs(
-                deleteDirs: true,
-                disableDeferredWipeout: true,
-                notFailBuild: true
-            )
         }
     }
 }
