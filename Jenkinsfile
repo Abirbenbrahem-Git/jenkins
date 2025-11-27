@@ -14,13 +14,36 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh '''mvn clean package -DskipTests'''
+                sh 'mvn clean compile'
             }
         }
 
+         stage('Test') {
+            steps {
+                script {
+                        sh 'mvn test'
+                }
+            }
+            post {
+                always {
+                    script {
+                            junit '*/target/surefire-reports/.xml'
+                    }
+                }
+            }
+        }
+
+        stage('Package') {
+            steps {
+                script {
+                        sh 'mvn package -DskipTests'
+                    } 
+                }
+            }
+
        stage('Archive Artifacts') {
             steps {
-                archiveArtifacts artifacts: '**/target/*.jar', followSymlinks: false
+                archiveArtifacts artifacts: '**/target/*.jar',  fingerprint: true, allowEmptyArchive: true
             }
         }
     }
