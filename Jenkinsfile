@@ -29,6 +29,22 @@ pipeline {
             }
         }
 
+        
+        stage('SonarQube Analysis') {
+        steps {
+             withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                withSonarQubeEnv('sonarqube-server') {
+                    sh """
+                         mvn sonar:sonar \
+                        -Dsonar.projectKey=devopsproject \
+                        -Dsonar.host.url=$SONARQUBE_URL \
+                         -Dsonar.login=$SONAR_TOKEN
+                        """
+                    }
+                }
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 sh """
