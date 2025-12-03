@@ -60,7 +60,7 @@ pipeline {
         success {
             mail to: 'benbrahemabir@gmail.com',
                  subject: 'Build Successful',
-                 body: 'La build a réussi.'
+                 body: 'La build a réussii.'
         }
         failure {
             mail to: 'benbrahemabir@gmail.com',
