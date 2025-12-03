@@ -55,6 +55,21 @@ pipeline {
         }
 
     }
+
+    post {
+        success {
+            mail to: 'benbrahemabir@gmail.com',
+                 subject: 'Build Successful',
+                 body: 'La build a réussi.'
+        }
+        failure {
+            mail to: 'benbrahemabir@gmail.com',
+                 subject: 'Build Failed',
+                 body: 'La build a échoué.'
+        }
+    }
+
+    
 }
 
 
